@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Differentialrechnung – Interaktiv Lernen</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=JetBrains+Mono:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --surface2: #1a2236;
+    --accent: #f59e0b;
+    --accent2: #38bdf8;
+    --accent3: #a78bfa;
+    --text: #e2e8f0;
+    --text-muted: #64748b;
+    --success: #10b981;
+    --error: #ef4444;
+    --border: #1e2d45;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 10%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.15) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.25) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Navigation */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: rgba(10,14,26,0.9);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    height: 60px;
+    gap: 0.5rem;
+    overflow-x: auto;
+  }
+
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    color: var(--accent);
+    font-weight: 900;
+    white-space: nowrap;
+    margin-right: 1.5rem;
+  }
+
+  .nav-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    padding: 0.3rem 0.7rem;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+  .nav-btn:hover, .nav-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: rgba(245,158,11,0.08);
+  }
+
+  /* Main layout */
+  main {
+    margin-top: 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Hero */
+  .hero {
+    padding: 4rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+  }
+
+  .hero-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    font-weight: 900;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 50%, var(--accent3) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 1rem;
+  }
+
+  .hero-sub {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* Progress bar */
+  .progress-bar {
+    max-width: 600px;
+    margin: 1.5rem auto 0;
+    background: var(--border);
+    height: 4px;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    transition: width 0.5s ease;
+    width: 0%;
+  }
+  .progress-label {
+    text-align: center;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+  }
+
+  /* Sections */
+  .section {
+    display: none;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem 5rem;
+    animation: fadeIn 0.4s ease;
+  }
+  .section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--accent);
+    margin-bottom: 1rem;
+  }
+
+  .card p {
+    line-height: 1.8;
+    color: var(--text);
+    font-size: 0.85rem;
+    margin-bottom: 0.8rem;
+  }
+
+  /* Formula box */
+  .formula {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2);
+    border-radius: 6px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+    color: var(--accent2);
+    letter-spacing: 0.05em;
+  }
+
+  /* Canvas container */
+  .canvas-wrap {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1rem;
+    margin: 1rem 0;
+    position: relative;
+  }
+
+  canvas {
+    display: block;
+    border-radius: 6px;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Sliders */
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 0.6rem 0;
+    flex-wrap: wrap;
+  }
+
+  .control-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    min-width: 120px;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    flex: 1;
+    min-width: 120px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+
+  .val-display {
+    font-size: 0.8rem;
+    color: var(--accent);
+    min-width: 50px;
+    text-align: right;
+  }
+
+  /* Quiz */
+  .quiz-question {
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+  }
+
+  .quiz-options {
+    display: grid;
+    gap: 0.6rem;
+  }
+
+  .quiz-opt {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.8rem 1rem;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--text);
+    text-align: left;
+    transition: all 0.2s;
+  }
+  .quiz-opt:hover { border-color: var(--accent2); color: var(--accent2); }
+  .quiz-opt.correct { border-color: var(--success); background: rgba(16,185,129,0.1); color: var(--success); }
+  .quiz-opt.wrong { border-color: var(--error); background: rgba(239,68,68,0.1); color: var(--error); }
+
+  .quiz-feedback {
+    margin-top: 0.8rem;
+    font-size: 0.82rem;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    display: none;
+  }
+  .quiz-feedback.show { display: block; }
+  .quiz-feedback.ok { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid var(--success); }
+  .quiz-feedback.err { background: rgba(239,68,68,0.1); color: var(--error); border: 1px solid var(--error); }
+
+  .btn-next {
+    margin-top: 1rem;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    padding: 0.6rem 1.4rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;
+    transition: opacity 0.2s;
+  }
+  .btn-next:hover { opacity: 0.85; }
+  .btn-next.show { display: inline-block; }
+
+  /* Section header */
+  .sec-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .sec-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--border);
+    line-height: 1;
+  }
+  .sec-info h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem;
+    color: var(--text);
+  }
+  .sec-info p { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+  /* Tag chips */
+  .tag {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 20px;
+    margin-right: 0.4rem;
+    margin-bottom: 0.4rem;
+  }
+  .tag-theory { background: rgba(167,139,250,0.15); color: var(--accent3); border: 1px solid var(--accent3); }
+  .tag-interactive { background: rgba(56,189,248,0.15); color: var(--accent2); border: 1px solid var(--accent2); }
+  .tag-quiz { background: rgba(245,158,11,0.15); color: var(--accent); border: 1px solid var(--accent); }
+
+  /* input text */
+  .text-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    outline: none;
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+  .text-input:focus { border-color: var(--accent2); }
+
+  .check-btn {
+    margin-top: 0.6rem;
+    background: var(--surface2);
+    border: 1px solid var(--accent2);
+    color: var(--accent2);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    padding: 0.5rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .check-btn:hover { background: rgba(56,189,248,0.1); }
+
+  /* Table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    margin: 1rem 0;
+  }
+  th {
+    background: var(--surface2);
+    color: var(--accent2);
+    padding: 0.6rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid rgba(30,45,69,0.5);
+    color: var(--text);
+  }
+  tr:hover td { background: rgba(56,189,248,0.04); }
+
+  /* Completed badge */
+  .badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background: rgba(16,185,129,0.15);
+    color: var(--success);
+    border: 1px solid var(--success);
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  /* Home grid */
+  .home-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1.5rem 5rem;
+  }
+
+  .home-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    cursor: pointer;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+  .home-card:hover {
+    border-color: var(--accent2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(56,189,248,0.1);
+  }
+  .home-card .hc-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--border);
+    margin-bottom: 0.4rem;
+  }
+  .home-card .hc-title {
+    font-size: 0.82rem;
+    color: var(--text);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+  }
+  .home-card .hc-sub { font-size: 0.7rem; color: var(--text-muted); }
+  .home-card .hc-done {
+    position: absolute;
+    top: 0.8rem; right: 0.8rem;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .home-card .hc-done.done { background: var(--success); box-shadow: 0 0 6px var(--success); }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">∂ Differentialrechnung</div>
+  <button class="nav-btn active" onclick="showSection('home')">Übersicht</button>
+  <button class="nav-btn" onclick="showSection('s1')">Grenzwert</button>
+  <button class="nav-btn" onclick="showSection('s2')">Ableitung</button>
+  <button class="nav-btn" onclick="showSection('s3')">Ableitungsregeln</button>
+  <button class="nav-btn" onclick="showSection('s4')">Tangente</button>
+  <button class="nav-btn" onclick="showSection('s5')">Kurvendiskussion</button>
+  <button class="nav-btn" onclick="showSection('s6')">Graphen</button>
+  <button class="nav-btn" onclick="showSection('s7')">Extremwerte</button>
+  <button class="nav-btn" onclick="showSection('s8')">Grundfunktionen</button>
+</nav>
+
+<main>
+  <div class="hero">
+    <div class="hero-title">Differentialrechnung</div>
+    <div class="hero-sub">Interaktiv · Visuell · Verständlich</div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0 / 8 Themen abgeschlossen</div>
+  </div>
+
+  <!-- HOME -->
+  <div id="home" class="active">
+    <div class="home-grid" id="homeGrid">
+      <div class="home-card" onclick="showSection('s1')">
+        <div class="hc-done" id="dot-s1"></div>
+        <div class="hc-num">01</div>
+        <div class="hc-title">Differenzialquotient & Grenzwert</div>
+        <div class="hc-sub">Sekantensteigung → Tangentensteigung</div>
+      </div>
+      <div class="home-card" onclick="showSection('s2')">
+        <div class="hc-done" id="dot-s2"></div>
+        <div class="hc-num">02</div>
+        <div class="hc-title">Ableitung & Stetigkeit</div>
+        <div class="hc-sub">Begriff, Differenzierbarkeit, Zusammenhänge</div>
+      </div>
+      <div class="home-card" onclick="showSection('s3')">
+        <div class="hc-done" id="dot-s3"></div>
+        <div class="hc-num">03</div>
+        <div class="hc-title">Ableitungsregeln</div>
+        <div class="hc-sub">Produkt-, Quotienten-, Kettenregel</div>
+      </div>
+      <div class="home-card" onclick="showSection('s4')">
+        <div class="hc-done" id="dot-s4"></div>
+        <div class="hc-num">04</div>
+        <div class="hc-title">Tangente & Normale</div>
+        <div class="hc-sub">Tangentenproblem 1 & 2, Kurvennormale</div>
+      </div>
+      <div class="home-card" onclick="showSection('s5')">
+        <div class="hc-done" id="dot-s5"></div>
+        <div class="hc-num">05</div>
+        <div class="hc-title">Kurvendiskussion</div>
+        <div class="hc-sub">Monotonie, Extremwerte, Wendepunkte</div>
+      </div>
+      <div class="home-card" onclick="showSection('s6')">
+        <div class="hc-done" id="dot-s6"></div>
+        <div class="hc-num">06</div>
+        <div class="hc-title">Graphen lesen</div>
+        <div class="hc-sub">f ↔ f' graphisch interpretieren</div>
+      </div>
+      <div class="home-card" onclick="showSection('s7')">
+        <div class="hc-done" id="dot-s7"></div>
+        <div class="hc-num">07</div>
+        <div class="hc-title">Extremwertprobleme</div>
+        <div class="hc-sub">Haupt-/Nebenbedingung, Zielfunktion</div>
+      </div>
+      <div class="home-card" onclick="showSection('s8')">
+        <div class="hc-done" id="dot-s8"></div>
+        <div class="hc-num">08</div>
+        <div class="hc-title">Grundfunktionen & Sinus/Cosinus</div>
+        <div class="hc-sub">eˣ, sin x, cos x und ihre Ableitungen</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 1: Grenzwert & Differenzialquotient -->
+  <div id="s1" class="section">
+    <div class="sec-header">
+      <div class="sec-num">01</div>
+      <div class="sec-info">
+        <h2>Differenzialquotient & Grenzwert</h2>
+        <p>Sekantensteigung · Grenzwertprozess · Momentansteigung</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Theorie: Vom Sekante zur Tangente</div>
+      <span class="tag tag-theory">Theorie</span>
+      <p>Die <strong style="color:var(--accent)">Sekantensteigung</strong> zwischen zwei Punkten P(x₀, f(x₀)) und Q(x₀+h, f(x₀+h)) beschreibt die durchschnittliche Änderungsrate:</p>
+      <div class="formula">m_Sekante = [f(x₀ + h) − f(x₀)] / h</div>
+      <p>Wenn wir h immer kleiner werden lassen (h → 0), nähert sich die Sekante der <strong style="color:var(--accent2)">Tangente</strong> an. Der Grenzwert dieses Prozesses ist der <strong>Differenzialquotient</strong>:</p>
+      <div class="formula">f'(x₀) = lim[h→0] [f(x₀+h) − f(x₀)] / h</div>
+      <p>Dies ist die <strong>Momentangeschwindigkeit</strong> der Änderung – die Steigung der Tangente im Punkt x₀.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Interaktiv: Sekante → Tangente</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <p style="font-size:0.78rem;color:var(--text-muted)">Bewege h → 0 und beobachte, wie die Sekante zur Tangente wird.</p>
+      <div class="canvas-wrap">
+        <canvas id="c1" height="300"></canvas>
+      </div>
+      <div class="control-row">
+        <span class="control-label">h (Schrittweite)</span>
+        <input type="range" id="h_val" min="0.05" max="3" step="0.05" value="2" oninput="drawC1()">
+        <span class="val-display" id="h_display">2.00</span>
+      </div>
+      <div class="control-row">
+        <span class="control-label">x₀ (Punkt)</span>
+        <input type="range" id="x0_val" min="-2" max="2" step="0.1" value="0" oninput="drawC1()">
+        <span class="val-display" id="x0_display">0.0</span>
+      </div>
+      <div class="formula" id="sekante_display">m = –</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quiz: Differenzialquotient</div>
+      <span class="tag tag-quiz">Quiz</span>
+      <div id="quiz1"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: Ableitung & Stetigkeit -->
+  <div id="s2" class="section">
+    <div class="sec-header">
+      <div class="sec-num">02</div>
+      <div class="sec-info">
+        <h2>Ableitung & Stetigkeit</h2>
+        <p>Differenzierbarkeit · Stetigkeit · Zusammenhänge</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Was ist die Ableitung?</div>
+      <span class="tag tag-theory">Theorie</span>
+      <p>Die <strong style="color:var(--accent)">Ableitungsfunktion f'(x)</strong> ordnet jedem x die Steigung der Tangente an f in diesem Punkt zu. Sie gibt die momentane Änderungsrate der Funktion an.</p>
+      <p>Eine Funktion ist <strong style="color:var(--accent2)">differenzierbar</strong> an der Stelle x₀, wenn der Grenzwert des Differenzenquotienten existiert. Differenzierbarkeit impliziert immer Stetigkeit – aber nicht umgekehrt!</p>
+      <div class="formula">Differenzierbar ⟹ Stetig (aber nicht umgekehrt!)</div>
+      <p><strong style="color:var(--error)">Nicht differenzierbar</strong> sind Funktionen an Stellen mit:<br>
+        → Knick (z.B. f(x) = |x| bei x = 0)<br>
+        → Sprung (Unstetigkeitsstelle)<br>
+        → Senkrechter Tangente</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Interaktiv: Stetigkeit & Differenzierbarkeit</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <div class="canvas-wrap">
+        <canvas id="c2" height="280"></canvas>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Funktion wählen</span>
+        <select id="funcSel" onchange="drawC2()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:0.4rem;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+          <option value="smooth">f(x) = x² (stetig & differenzierbar)</option>
+          <option value="abs">f(x) = |x| (stetig, NICHT differenzierbar bei 0)</option>
+          <option value="jump">f(x) Sprungfunktion (NICHT stetig)</option>
+        </select>
+      </div>
+      <div id="c2Info" style="margin-top:0.8rem;font-size:0.78rem;padding:0.6rem 1rem;border-radius:6px;background:var(--surface2);border:1px solid var(--border);">Wähle eine Funktion.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quiz</div>
+      <span class="tag tag-quiz">Quiz</span>
+      <div id="quiz2"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 3: Ableitungsregeln -->
+  <div id="s3" class="section">
+    <div class="sec-header">
+      <div class="sec-num">03</div>
+      <div class="sec-info">
+        <h2>Ableitungsregeln</h2>
+        <p>Potenz · Produkt · Quotient · Kette</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Übersicht der Ableitungsregeln</div>
+      <span class="tag tag-theory">Theorie</span>
+      <table>
+        <tr><th>Regel</th><th>Formel</th><th>Beispiel</th></tr>
+        <tr><td>Potenzregel</td><td style="color:var(--accent2)">(xⁿ)' = n·xⁿ⁻¹</td><td>(x³)' = 3x²</td></tr>
+        <tr><td>Faktorregel</td><td style="color:var(--accent2)">(c·f)' = c·f'</td><td>(5x²)' = 10x</td></tr>
+        <tr><td>Summenregel</td><td style="color:var(--accent2)">(f+g)' = f'+g'</td><td>(x²+x)' = 2x+1</td></tr>
+        <tr><td><strong style="color:var(--accent)">Produktregel</strong></td><td style="color:var(--accent)">(f·g)' = f'g + fg'</td><td>(x·sin x)' = sin x + x·cos x</td></tr>
+        <tr><td><strong style="color:var(--accent)">Quotientenregel</strong></td><td style="color:var(--accent)">(f/g)' = (f'g − fg') / g²</td><td>(sin x / x)' = (x·cos x − sin x) / x²</td></tr>
+        <tr><td><strong style="color:var(--accent)">Kettenregel</strong></td><td style="color:var(--accent)">(f(g(x)))' = f'(g(x))·g'(x)</td><td>(sin(x²))' = cos(x²)·2x</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Ableitungsrechner – übe selbst</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <p style="font-size:0.78rem;color:var(--text-muted)">Klick auf eine Aufgabe und berechne die Ableitung. Dann prüfe deine Antwort:</p>
+      <div id="derivQuiz"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Kettenregel – Visualisierung</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <p style="font-size:0.78rem;color:var(--text-muted)">f(x) = sin(a·x). Beobachte: Je grösser a, desto steiler die Ableitung.</p>
+      <div class="canvas-wrap"><canvas id="c3" height="260"></canvas></div>
+      <div class="control-row">
+        <span class="control-label">Parameter a</span>
+        <input type="range" id="a_val" min="0.5" max="4" step="0.1" value="1" oninput="drawC3()">
+        <span class="val-display" id="a_display">1.0</span>
+      </div>
+      <div class="formula" id="c3formula">f(x) = sin(x) &nbsp;&nbsp; f'(x) = cos(x)</div>
+    </div>
+  </div>
+
+  <!-- SECTION 4: Tangente -->
+  <div id="s4" class="section">
+    <div class="sec-header">
+      <div class="sec-num">04</div>
+      <div class="sec-info">
+        <h2>Tangente & Normale</h2>
+        <p>Tangentenproblem 1 & 2 · Kurvennormale</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tangentenproblem 1: Tangente an einem Punkt</div>
+      <span class="tag tag-theory">Theorie</span>
+      <p>Gegeben: Kurve f und Punkt x₀. Gesucht: Tangentengleichung.</p>
+      <div class="formula">t(x) = f'(x₀) · (x − x₀) + f(x₀)</div>
+      <p>Vorgehen: 1) f'(x) berechnen → 2) x₀ einsetzen → 3) Punktsteigungsform aufschreiben</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tangentenproblem 2: Tangente mit gegebener Steigung</div>
+      <span class="tag tag-theory">Theorie</span>
+      <p>Gegeben: Kurve f und Steigung m. Gesucht: Berührpunkt(e) und Tangentengleichung.</p>
+      <div class="formula">f'(x) = m &nbsp;→&nbsp; löse nach x auf &nbsp;→&nbsp; x₀ finden</div>
+      <p>Dann wieder Punktsteigungsform verwenden!</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Kurvennormale</div>
+      <span class="tag tag-theory">Theorie</span>
+      <p>Die Normale steht senkrecht zur Tangente. Die Steigung der Normalen ist der negative Kehrwert der Tangentensteigung:</p>
+      <div class="formula">m_Normale = −1 / f'(x₀)</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Interaktiv: Tangente an f(x) = x²</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <div class="canvas-wrap"><canvas id="c4" height="300"></canvas></div>
+      <div class="control-row">
+        <span class="control-label">x₀</span>
+        <input type="range" id="x0tan" min="-2.5" max="2.5" step="0.1" value="1" oninput="drawC4()">
+        <span class="val-display" id="x0tan_d">1.0</span>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Zeige</span>
+        <label style="font-size:0.78rem;cursor:pointer">
+          <input type="checkbox" id="showNorm" onchange="drawC4()" style="margin-right:0.4rem">Normale anzeigen
+        </label>
+      </div>
+      <div class="formula" id="tan_formula">t(x) = 2x − 1</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quiz: Tangentengleichung</div>
+      <span class="tag tag-quiz">Quiz</span>
+      <div id="quiz4"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 5: Kurvendiskussion -->
+  <div id="s5" class="section">
+    <div class="sec-header">
+      <div class="sec-num">05</div>
+      <div class="sec-info">
+        <h2>Kurvendiskussion</h2>
+        <p>Monotonie · Extremwerte · Wendepunkte · Krümmung</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Vollständige Kurvendiskussion</div>
+      <span class="tag tag-theory">Theorie</span>
+      <table>
+        <tr><th>Eigenschaft</th><th>Bedingung</th><th>Bedeutung</th></tr>
+        <tr><td>Monoton wachsend</td><td style="color:var(--success)">f'(x) > 0</td><td>Kurve steigt</td></tr>
+        <tr><td>Monoton fallend</td><td style="color:var(--error)">f'(x) < 0</td><td>Kurve fällt</td></tr>
+        <tr><td>Lokales Maximum</td><td style="color:var(--accent)">f'(x₀)=0, f''(x₀)<0</td><td>Hochpunkt</td></tr>
+        <tr><td>Lokales Minimum</td><td style="color:var(--accent)">f'(x₀)=0, f''(x₀)>0</td><td>Tiefpunkt</td></tr>
+        <tr><td>Wendepunkt</td><td style="color:var(--accent2)">f''(x₀)=0, f'''(x₀)≠0</td><td>Krümmungswechsel</td></tr>
+        <tr><td>Terrassenpunkt</td><td style="color:var(--accent2)">f'=f''=0, f'''≠0</td><td>Weder Max noch Min</td></tr>
+        <tr><td>Linksgekrümmt</td><td style="color:var(--accent3)">f''(x) > 0</td><td>Konkav nach oben</td></tr>
+        <tr><td>Rechtsgekrümmt</td><td style="color:var(--accent3)">f''(x) < 0</td><td>Konkav nach unten</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Interaktiv: Analyse von f(x) = x³ − 3x</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <div class="canvas-wrap"><canvas id="c5" height="320"></canvas></div>
+      <div class="control-row">
+        <label style="font-size:0.78rem;cursor:pointer;margin-right:1rem">
+          <input type="checkbox" id="showF1" checked onchange="drawC5()"> f'(x) anzeigen
+        </label>
+        <label style="font-size:0.78rem;cursor:pointer">
+          <input type="checkbox" id="showF2" onchange="drawC5()"> f''(x) anzeigen
+        </label>
+      </div>
+      <div id="c5info" style="margin-top:0.8rem;font-size:0.78rem;line-height:1.8;padding:0.8rem;background:var(--surface2);border-radius:6px;border:1px solid var(--border)">
+        f(x) = x³ − 3x &nbsp;|&nbsp; f'(x) = 3x² − 3 &nbsp;|&nbsp; f''(x) = 6x<br>
+        Extrema: f'(x)=0 → x=±1 &nbsp;|&nbsp; Maximum: (−1, 2) &nbsp;|&nbsp; Minimum: (1, −2)<br>
+        Wendepunkt: f''(x)=0 → x=0 → WP: (0, 0)
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quiz: Extremwerte & Wendepunkte</div>
+      <span class="tag tag-quiz">Quiz</span>
+      <div id="quiz5"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 6: Graphen lesen -->
+  <div id="s6" class="section">
+    <div class="sec-header">
+      <div class="sec-num">06</div>
+      <div class="sec-info">
+        <h2>Graphen lesen & skizzieren</h2>
+        <p>f ↔ f' grafisch · Symmetrien</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Von f zu f' – Regeln</div>
+      <span class="tag tag-theory">Theorie</span>
+      <p>→ Wo <strong style="color:var(--accent)">f ein Maximum oder Minimum</strong> hat, hat f' eine Nullstelle.<br>
+         → Wo <strong style="color:var(--success)">f steigt</strong>, ist f' positiv.<br>
+         → Wo <strong style="color:var(--error)">f fällt</strong>, ist f' negativ.<br>
+         → Wo <strong style="color:var(--accent2)">f einen Wendepunkt</strong> hat, hat f' ein Extremum.</p>
+      <div class="formula">Wendepunkt von f ↔ Extremum von f'</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Interaktiv: f und f' gleichzeitig sehen</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <div class="canvas-wrap"><canvas id="c6" height="300"></canvas></div>
+      <div class="control-row">
+        <span class="control-label">Funktion</span>
+        <select id="f6sel" onchange="drawC6()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:0.4rem;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:0.78rem;">
+          <option value="cubic">f(x) = x³ − 3x</option>
+          <option value="quad">f(x) = x² − 2</option>
+          <option value="sin">f(x) = sin(x)</option>
+          <option value="quart">f(x) = x⁴ − 4x²</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Symmetrien: gerade & ungerade Funktionen</div>
+      <span class="tag tag-theory">Theorie</span>
+      <table>
+        <tr><th>Typ</th><th>Bedingung</th><th>Achse</th><th>Beispiel</th></tr>
+        <tr><td>Gerade Funktion</td><td style="color:var(--accent2)">f(−x) = f(x)</td><td>y-Achse</td><td>x², cos(x)</td></tr>
+        <tr><td>Ungerade Funktion</td><td style="color:var(--accent)">f(−x) = −f(x)</td><td>Ursprung</td><td>x³, sin(x)</td></tr>
+      </table>
+      <p style="margin-top:0.8rem">Vorgehen: x durch −x ersetzen und vereinfachen. Gilt f(−x)=f(x)? → Gerade. Gilt f(−x)=−f(x)? → Ungerade.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quiz: Graphen lesen</div>
+      <span class="tag tag-quiz">Quiz</span>
+      <div id="quiz6"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 7: Extremwertprobleme -->
+  <div id="s7" class="section">
+    <div class="sec-header">
+      <div class="sec-num">07</div>
+      <div class="sec-info">
+        <h2>Extremwertprobleme</h2>
+        <p>Hauptbedingung · Nebenbedingung · Zielfunktion</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Vorgehen bei Extremwertproblemen</div>
+      <span class="tag tag-theory">Theorie</span>
+      <p><strong style="color:var(--accent)">Schritt 1 – Hauptbedingung:</strong> Was soll optimiert werden? (z.B. Fläche maximieren)</p>
+      <div class="formula">Z = ... (Zielfunktion in einer Variable)</div>
+      <p><strong style="color:var(--accent2)">Schritt 2 – Nebenbedingung:</strong> Welche Einschränkung gibt es? (z.B. fester Umfang)</p>
+      <div class="formula">Nebenbedingung aufstellen → Variable eliminieren</div>
+      <p><strong style="color:var(--success)">Schritt 3 – Ableiten & Nullsetzen:</strong></p>
+      <div class="formula">Z'(x) = 0 → x berechnen → Z''(x) prüfen (Max/Min?)</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Beispiel: Rechteck mit maximalem Flächeninhalt</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <p style="font-size:0.82rem">Gegeben: Umfang U = 20 cm. Gesucht: Rechteck mit maximalem Flächeninhalt.</p>
+      <div class="canvas-wrap"><canvas id="c7" height="280"></canvas></div>
+      <div class="control-row">
+        <span class="control-label">Seite a (cm)</span>
+        <input type="range" id="side_a" min="0.5" max="9.5" step="0.1" value="5" oninput="drawC7()">
+        <span class="val-display" id="side_a_d">5.0</span>
+      </div>
+      <div id="c7info" class="formula">Fläche: A = a · b = 5 · 5 = 25 cm²</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quiz: Extremwertprobleme</div>
+      <span class="tag tag-quiz">Quiz</span>
+      <div id="quiz7"></div>
+    </div>
+  </div>
+
+  <!-- SECTION 8: Grundfunktionen -->
+  <div id="s8" class="section">
+    <div class="sec-header">
+      <div class="sec-num">08</div>
+      <div class="sec-info">
+        <h2>Grundfunktionen & ihre Ableitungen</h2>
+        <p>eˣ · sin x · cos x · Grundregeln</p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Ableitungen der Grundfunktionen</div>
+      <span class="tag tag-theory">Theorie</span>
+      <table>
+        <tr><th>f(x)</th><th>f'(x)</th><th>Besonderheit</th></tr>
+        <tr><td>xⁿ</td><td style="color:var(--accent2)">n · xⁿ⁻¹</td><td>Potenzregel</td></tr>
+        <tr><td>c (Konstante)</td><td style="color:var(--accent2)">0</td><td>–</td></tr>
+        <tr><td style="color:var(--accent)">eˣ</td><td style="color:var(--accent)">eˣ</td><td>Bleibt gleich! Einzigartig.</td></tr>
+        <tr><td style="color:var(--accent)">eᵏˣ</td><td style="color:var(--accent)">k · eᵏˣ</td><td>Kettenregel</td></tr>
+        <tr><td style="color:var(--accent3)">sin(x)</td><td style="color:var(--accent3)">cos(x)</td><td>90° Phasenverschiebung</td></tr>
+        <tr><td style="color:var(--accent3)">cos(x)</td><td style="color:var(--accent3)">−sin(x)</td><td>Minus!</td></tr>
+        <tr><td>ln(x)</td><td style="color:var(--accent2)">1/x</td><td>x > 0</td></tr>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Interaktiv: eˣ ist seine eigene Ableitung</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <div class="canvas-wrap"><canvas id="c8" height="260"></canvas></div>
+      <div id="c8info" style="font-size:0.78rem;margin-top:0.5rem;color:var(--text-muted)">Die Steigung von eˣ an jedem Punkt ist gleich dem Funktionswert an diesem Punkt!</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Interaktiv: sin und cos</div>
+      <span class="tag tag-interactive">Interaktiv</span>
+      <div class="canvas-wrap"><canvas id="c8b" height="220"></canvas></div>
+      <p style="font-size:0.75rem;color:var(--text-muted);margin-top:0.5rem">sin' = cos (blau gestrichelt), cos' = −sin (orange gestrichelt)</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Quiz: Ableitungen der Grundfunktionen</div>
+      <span class="tag tag-quiz">Quiz</span>
+      <div id="quiz8"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ===================== STATE =====================
+const completed = {};
+
+function markDone(id) {
+  completed[id] = true;
+  const dot = document.getElementById('dot-' + id);
+  if (dot) dot.classList.add('done');
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = 8;
+  const done = Object.keys(completed).length;
+  document.getElementById('progressFill').style.width = (done / total * 100) + '%';
+  document.getElementById('progressLabel').textContent = done + ' / ' + total + ' Themen abgeschlossen';
+}
+
+// ===================== NAVIGATION =====================
+const sections = ['home','s1','s2','s3','s4','s5','s6','s7','s8'];
+const navBtns = document.querySelectorAll('.nav-btn');
+
+function showSection(id) {
+  sections.forEach(s => {
+    const el = document.getElementById(s);
+    if (el) el.classList.remove('active');
+  });
+  const target = document.getElementById(id);
+  if (target) target.classList.add('active');
+
+  navBtns.forEach((b, i) => b.classList.toggle('active', b.textContent.trim() === getSectionLabel(id) || (id === 'home' && i === 0)));
+  window.scrollTo({top: 0, behavior: 'smooth'});
+
+  setTimeout(() => {
+    if (id === 's1') { drawC1(); initQuiz('quiz1', quizData.q1, 's1'); }
+    if (id === 's2') { drawC2(); initQuiz('quiz2', quizData.q2, 's2'); }
+    if (id === 's3') { drawC3(); initDerivQuiz(); }
+    if (id === 's4') { drawC4(); initQuiz('quiz4', quizData.q4, 's4'); }
+    if (id === 's5') { drawC5(); initQuiz('quiz5', quizData.q5, 's5'); }
+    if (id === 's6') { drawC6(); initQuiz('quiz6', quizData.q6, 's6'); }
+    if (id === 's7') { drawC7(); initQuiz('quiz7', quizData.q7, 's7'); }
+    if (id === 's8') { drawC8(); drawC8b(); initQuiz('quiz8', quizData.q8, 's8'); }
+  }, 50);
+}
+
+function getSectionLabel(id) {
+  const map = { home: 'Übersicht', s1: 'Grenzwert', s2: 'Ableitung', s3: 'Ableitungsregeln', s4: 'Tangente', s5: 'Kurvendiskussion', s6: 'Graphen', s7: 'Extremwerte', s8: 'Grundfunktionen' };
+  return map[id] || '';
+}
+
+// ===================== CANVAS HELPERS =====================
+function setupCanvas(id) {
+  const c = document.getElementById(id);
+  if (!c) return null;
+  const w = c.parentElement.clientWidth - 32;
+  c.width = w;
+  const ctx = c.getContext('2d');
+  return { c, ctx, w, h: c.height };
+}
+
+function drawGrid(ctx, w, h, xMin, xMax, yMin, yMax) {
+  const toX = x => (x - xMin) / (xMax - xMin) * w;
+  const toY = y => h - (y - yMin) / (yMax - yMin) * h;
+
+  ctx.strokeStyle = 'rgba(30,45,69,0.8)';
+  ctx.lineWidth = 1;
+  for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+    ctx.beginPath(); ctx.moveTo(toX(x), 0); ctx.lineTo(toX(x), h); ctx.stroke();
+  }
+  for (let y = Math.ceil(yMin); y <= Math.floor(yMax); y++) {
+    ctx.beginPath(); ctx.moveTo(0, toY(y)); ctx.lineTo(w, toY(y)); ctx.stroke();
+  }
+
+  ctx.strokeStyle = 'rgba(100,116,139,0.6)';
+  ctx.lineWidth = 1.5;
+  if (yMin < 0 && yMax > 0) { ctx.beginPath(); ctx.moveTo(0, toY(0)); ctx.lineTo(w, toY(0)); ctx.stroke(); }
+  if (xMin < 0 && xMax > 0) { ctx.beginPath(); ctx.moveTo(toX(0), 0); ctx.lineTo(toX(0), h); ctx.stroke(); }
+
+  ctx.fillStyle = '#64748b'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'center';
+  for (let x = Math.ceil(xMin); x <= Math.floor(xMax); x++) {
+    if (x !== 0) ctx.fillText(x, toX(x), toY(0) + 14);
+  }
+  ctx.textAlign = 'right';
+  for (let y = Math.ceil(yMin); y <= Math.floor(yMax); y++) {
+    if (y !== 0) ctx.fillText(y, toX(0) - 4, toY(y) + 4);
+  }
+  return { toX, toY };
+}
+
+function plotFn(ctx, fn, toX, toY, xMin, xMax, steps, color, lw, dash=[]) {
+  ctx.strokeStyle = color; ctx.lineWidth = lw;
+  ctx.setLineDash(dash);
+  ctx.beginPath();
+  let first = true;
+  for (let i = 0; i <= steps; i++) {
+    const x = xMin + i / steps * (xMax - xMin);
+    const y = fn(x);
+    if (!isFinite(y)) { first = true; continue; }
+    first ? ctx.moveTo(toX(x), toY(y)) : ctx.lineTo(toX(x), toY(y));
+    first = false;
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// ===================== C1: Sekante -> Tangente =====================
+function drawC1() {
+  const { ctx, w, h } = setupCanvas('c1') || {};
+  if (!ctx) return;
+  const h_val = parseFloat(document.getElementById('h_val').value);
+  const x0 = parseFloat(document.getElementById('x0_val').value);
+  document.getElementById('h_display').textContent = h_val.toFixed(2);
+  document.getElementById('x0_display').textContent = x0.toFixed(1);
+
+  const f = x => x * x;
+  const xMin = -4, xMax = 4, yMin = -1, yMax = 10;
+  ctx.clearRect(0, 0, w, h);
+  const { toX, toY } = drawGrid(ctx, w, h, xMin, xMax, yMin, yMax);
+
+  plotFn(ctx, f, toX, toY, xMin, xMax, 300, '#38bdf8', 2.5);
+
+  const y0 = f(x0), y1 = f(x0 + h_val);
+  const m = (y1 - y0) / h_val;
+  document.getElementById('sekante_display').textContent =
+    `m_Sekante = [f(${x0.toFixed(1)}+${h_val.toFixed(2)}) − f(${x0.toFixed(1)})] / ${h_val.toFixed(2)} = ${m.toFixed(4)}`;
+
+  // Sekante
+  ctx.strokeStyle = '#f59e0b'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(toX(xMin), toY(m * (xMin - x0) + y0));
+  ctx.lineTo(toX(xMax), toY(m * (xMax - x0) + y0));
+  ctx.stroke();
+
+  // Tangente
+  const mt = 2 * x0;
+  ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 1.5; ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  ctx.moveTo(toX(xMin), toY(mt * (xMin - x0) + y0));
+  ctx.lineTo(toX(xMax), toY(mt * (xMax - x0) + y0));
+  ctx.stroke(); ctx.setLineDash([]);
+
+  // Points
+  [[x0, y0, '#38bdf8'], [x0 + h_val, y1, '#f59e0b']].forEach(([x, y, c]) => {
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.arc(toX(x), toY(y), 5, 0, Math.PI * 2); ctx.fill();
+  });
+
+  ctx.fillStyle = '#f59e0b'; ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('Sekante (gelb)', 12, 18);
+  ctx.fillStyle = '#a78bfa';
+  ctx.fillText('Tangente (lila)', 12, 34);
+}
+
+// ===================== C2: Stetigkeit =====================
+function drawC2() {
+  const { ctx, w, h } = setupCanvas('c2') || {};
+  if (!ctx) return;
+  const sel = document.getElementById('funcSel').value;
+  ctx.clearRect(0, 0, w, h);
+  const { toX, toY } = drawGrid(ctx, w, h, -4, 4, -3, 5);
+
+  let info = '';
+  if (sel === 'smooth') {
+    plotFn(ctx, x => x * x, toX, toY, -4, 4, 300, '#38bdf8', 2.5);
+    info = '✓ Überall stetig und differenzierbar. f\'(x) = 2x existiert für alle x.';
+  } else if (sel === 'abs') {
+    plotFn(ctx, x => Math.abs(x), toX, toY, -4, 4, 300, '#f59e0b', 2.5);
+    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(toX(0), toY(0), 6, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ef4444'; ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText('Knick!', toX(0), toY(0) - 12);
+    info = '✓ Stetig überall. ✗ Bei x=0 nicht differenzierbar (Knick). Links: f\'=−1, Rechts: f\'=+1.';
+  } else {
+    ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 2.5;
+    ctx.beginPath(); ctx.moveTo(toX(-4), toY(-1)); ctx.lineTo(toX(0), toY(-1)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(toX(0), toY(2)); ctx.lineTo(toX(4), toY(2)); ctx.stroke();
+    ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.arc(toX(0), toY(-1), 4, 0, Math.PI*2); ctx.stroke();
+    ctx.fillStyle = '#a78bfa'; ctx.beginPath(); ctx.arc(toX(0), toY(2), 4, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#ef4444'; ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText('Sprung!', toX(0.5), toY(0.5));
+    info = '✗ Bei x=0 unstetig (Sprung). ✗ Daher auch nicht differenzierbar bei x=0.';
+  }
+  document.getElementById('c2Info').textContent = info;
+}
+
+// ===================== C3: Kettenregel sin(ax) =====================
+function drawC3() {
+  const { ctx, w, h } = setupCanvas('c3') || {};
+  if (!ctx) return;
+  const a = parseFloat(document.getElementById('a_val').value);
+  document.getElementById('a_display').textContent = a.toFixed(1);
+  document.getElementById('c3formula').textContent = `f(x) = sin(${a.toFixed(1)}x)   f\'(x) = ${a.toFixed(1)}·cos(${a.toFixed(1)}x)`;
+  ctx.clearRect(0, 0, w, h);
+  const { toX, toY } = drawGrid(ctx, w, h, -4, 4, -2.5, 2.5);
+  plotFn(ctx, x => Math.sin(a * x), toX, toY, -4, 4, 400, '#38bdf8', 2.5);
+  plotFn(ctx, x => a * Math.cos(a * x), toX, toY, -4, 4, 400, '#f59e0b', 2, [5,4]);
+  ctx.fillStyle = '#38bdf8'; ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('f(x)', 10, 20);
+  ctx.fillStyle = '#f59e0b'; ctx.fillText("f'(x)", 10, 36);
+}
+
+// ===================== C4: Tangente =====================
+function drawC4() {
+  const { ctx, w, h } = setupCanvas('c4') || {};
+  if (!ctx) return;
+  const x0 = parseFloat(document.getElementById('x0tan').value);
+  document.getElementById('x0tan_d').textContent = x0.toFixed(1);
+  const f = x => x * x, fp = x => 2 * x;
+  const m = fp(x0), y0 = f(x0);
+  const mN = -1 / m;
+  ctx.clearRect(0, 0, w, h);
+  const { toX, toY } = drawGrid(ctx, w, h, -4, 4, -2, 10);
+  plotFn(ctx, f, toX, toY, -4, 4, 300, '#38bdf8', 2.5);
+  plotFn(ctx, x => m * (x - x0) + y0, toX, toY, -4, 4, 200, '#f59e0b', 2);
+  if (document.getElementById('showNorm').checked) {
+    plotFn(ctx, x => mN * (x - x0) + y0, toX, toY, -4, 4, 200, '#a78bfa', 2, [5,4]);
+  }
+  ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(toX(x0), toY(y0), 5, 0, Math.PI*2); ctx.fill();
+  const showN = document.getElementById('showNorm').checked;
+  document.getElementById('tan_formula').textContent =
+    `t(x) = ${m.toFixed(2)}x + ${(y0 - m * x0).toFixed(2)}` +
+    (showN ? `   |   Normale: n(x) = ${mN.toFixed(2)}x + ${(y0 - mN * x0).toFixed(2)}` : '');
+}
+
+// ===================== C5: Kurvendiskussion =====================
+function drawC5() {
+  const { ctx, w, h } = setupCanvas('c5') || {};
+  if (!ctx) return;
+  const showF1 = document.getElementById('showF1').checked;
+  const showF2 = document.getElementById('showF2').checked;
+  ctx.clearRect(0, 0, w, h);
+  const { toX, toY } = drawGrid(ctx, w, h, -3, 3, -4, 5);
+  plotFn(ctx, x => x*x*x - 3*x, toX, toY, -3, 3, 300, '#38bdf8', 2.5);
+  if (showF1) plotFn(ctx, x => 3*x*x - 3, toX, toY, -3, 3, 300, '#f59e0b', 2, [5,3]);
+  if (showF2) plotFn(ctx, x => 6*x, toX, toY, -3, 3, 300, '#a78bfa', 2, [3,4]);
+
+  // Mark extrema
+  [[-1, 2], [1, -2]].forEach(([x, y]) => {
+    ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(toX(x), toY(y), 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#10b981'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'center';
+    ctx.fillText(y > 0 ? 'Max' : 'Min', toX(x), toY(y) - 10);
+  });
+  // Wendepunkt
+  ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.arc(toX(0), toY(0), 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#ef4444'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('WP', toX(0.1), toY(0) - 10);
+}
+
+// ===================== C6: f and f' =====================
+const f6fns = {
+  cubic: { f: x => x*x*x - 3*x, fp: x => 3*x*x - 3, label: "f(x)=x³−3x, f'(x)=3x²−3" },
+  quad: { f: x => x*x - 2, fp: x => 2*x, label: "f(x)=x²−2, f'(x)=2x" },
+  sin: { f: x => Math.sin(x), fp: x => Math.cos(x), label: "f(x)=sin(x), f'(x)=cos(x)" },
+  quart: { f: x => x*x*x*x - 4*x*x, fp: x => 4*x*x*x - 8*x, label: "f(x)=x⁴−4x², f'(x)=4x³−8x" }
+};
+
+function drawC6() {
+  const { ctx, w, h } = setupCanvas('c6') || {};
+  if (!ctx) return;
+  const sel = document.getElementById('f6sel').value;
+  const fn = f6fns[sel];
+  ctx.clearRect(0, 0, w, h);
+  const { toX, toY } = drawGrid(ctx, w, h, -4, 4, -6, 8);
+  plotFn(ctx, fn.f, toX, toY, -4, 4, 400, '#38bdf8', 2.5);
+  plotFn(ctx, fn.fp, toX, toY, -4, 4, 400, '#f59e0b', 2, [5,4]);
+  ctx.fillStyle = '#38bdf8'; ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('f(x)', 10, 18);
+  ctx.fillStyle = '#f59e0b'; ctx.fillText("f'(x)", 10, 34);
+}
+
+// ===================== C7: Extremwertproblem Rechteck =====================
+function drawC7() {
+  const { ctx, w, h } = setupCanvas('c7') || {};
+  if (!ctx) return;
+  const a = parseFloat(document.getElementById('side_a').value);
+  document.getElementById('side_a_d').textContent = a.toFixed(1);
+  const b = 10 - a;
+  const A = a * b;
+  ctx.clearRect(0, 0, w, h);
+
+  // Plot A(a) = a*(10-a)
+  const { toX, toY } = drawGrid(ctx, w, h, 0, 10, 0, 30);
+  plotFn(ctx, x => x * (10 - x), toX, toY, 0, 10, 300, '#38bdf8', 2.5);
+
+  // Current point
+  ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(toX(a), toY(A), 6, 0, Math.PI*2); ctx.fill();
+  // Max
+  ctx.fillStyle = '#10b981'; ctx.beginPath(); ctx.arc(toX(5), toY(25), 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#10b981'; ctx.font = '10px JetBrains Mono'; ctx.textAlign = 'center';
+  ctx.fillText('Max (5,25)', toX(5), toY(25) - 12);
+
+  document.getElementById('c7info').textContent =
+    `a=${a.toFixed(1)}, b=${b.toFixed(1)} → A = a·b = ${A.toFixed(1)} cm² ${A >= 24.9 ? '← Maximum! ✓' : ''}`;
+}
+
+// ===================== C8: eˣ =====================
+function drawC8() {
+  const { ctx, w, h } = setupCanvas('c8') || {};
+  if (!ctx) return;
+  ctx.clearRect(0, 0, w, h);
+  const { toX, toY } = drawGrid(ctx, w, h, -3, 3, -0.5, 8);
+  plotFn(ctx, x => Math.exp(x), toX, toY, -3, 3, 300, '#10b981', 2.5);
+  // Draw tangent at x=1
+  const x0 = 1, y0 = Math.exp(1), m = Math.exp(1);
+  plotFn(ctx, x => m*(x-x0)+y0, toX, toY, -1, 2.5, 100, '#f59e0b', 1.5, [5,4]);
+  ctx.fillStyle = '#f59e0b'; ctx.beginPath(); ctx.arc(toX(x0), toY(y0), 5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#10b981'; ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('f(x) = eˣ', 10, 18);
+  ctx.fillStyle = '#f59e0b'; ctx.fillText("f'(x) = eˣ (identisch!)", 10, 34);
+}
+
+function drawC8b() {
+  const { ctx, w, h } = setupCanvas('c8b') || {};
+  if (!ctx) return;
+  ctx.clearRect(0, 0, w, h);
+  const { toX, toY } = drawGrid(ctx, w, h, -4, 4, -2, 2);
+  plotFn(ctx, x => Math.sin(x), toX, toY, -4, 4, 300, '#a78bfa', 2.5);
+  plotFn(ctx, x => Math.cos(x), toX, toY, -4, 4, 300, '#38bdf8', 2, [5,4]);
+  plotFn(ctx, x => Math.cos(x), toX, toY, -4, 4, 300, '#38bdf8', 1.5, [5,4]);
+  plotFn(ctx, x => -Math.sin(x), toX, toY, -4, 4, 300, '#f59e0b', 2, [3,5]);
+  ctx.fillStyle = '#a78bfa'; ctx.font = '11px JetBrains Mono'; ctx.textAlign = 'left';
+  ctx.fillText('sin(x)', 10, 18);
+  ctx.fillStyle = '#38bdf8'; ctx.fillText('cos(x) = sin\'(x)', 10, 34);
+  ctx.fillStyle = '#f59e0b'; ctx.fillText('-sin(x) = cos\'(x)', 10, 50);
+}
+
+// ===================== QUIZ ENGINE =====================
+const quizData = {
+  q1: [
+    { q: "Was beschreibt der Differenzialquotient?", opts: ["Die Fläche unter der Kurve", "Die Momentansteigung der Kurve (Tangentensteigung)", "Den y-Achsenabschnitt der Funktion", "Den Grenzwert für x → ∞"], ans: 1, exp: "Der Differenzialquotient f'(x₀) = lim[h→0] (f(x₀+h)−f(x₀))/h gibt die Steigung der Tangente im Punkt x₀ an." },
+    { q: "Was passiert mit der Sekantensteigung, wenn h → 0 geht?", opts: ["Sie wird unendlich groß", "Sie nähert sich der Tangentensteigung", "Sie nähert sich 0", "Sie bleibt konstant"], ans: 1, exp: "Im Grenzwert h→0 geht die Sekante in die Tangente über." },
+    { q: "Wie lautet der Differenzialquotient von f(x) = x² an der Stelle x₀ = 3?", opts: ["3", "6", "9", "4"], ans: 1, exp: "f'(x) = 2x, also f'(3) = 2·3 = 6." }
+  ],
+  q2: [
+    { q: "Welche Aussage ist korrekt?", opts: ["Stetig ⟹ Differenzierbar", "Differenzierbar ⟹ Stetig", "Stetig ⟺ Differenzierbar", "Differenzierbar ⟹ Nicht stetig"], ans: 1, exp: "Jede differenzierbare Funktion ist stetig, aber nicht jede stetige Funktion ist differenzierbar (Gegenbeispiel: |x|)." },
+    { q: "Warum ist f(x) = |x| bei x = 0 nicht differenzierbar?", opts: ["Sie ist dort nicht definiert", "Sie hat einen Sprung", "Sie hat einen Knick (linksseitige ≠ rechtsseitige Ableitung)", "Der Wert ist 0"], ans: 2, exp: "Links ist f'= −1, rechts f'= +1. Da diese nicht übereinstimmen, existiert kein eindeutiger Differenzialquotient." }
+  ],
+  q4: [
+    { q: "Wie lautet die Tangentengleichung an f(x)=x² im Punkt x₀=2?", opts: ["t(x) = 4x + 4", "t(x) = 4x − 4", "t(x) = 2x − 4", "t(x) = 4x"], ans: 1, exp: "f(2)=4, f'(2)=4. t(x) = 4(x−2)+4 = 4x−4." },
+    { q: "Was ist die Steigung der Normalen, wenn die Tangente die Steigung m=3 hat?", opts: ["3", "−3", "1/3", "−1/3"], ans: 3, exp: "Die Normale hat die Steigung −1/m = −1/3." },
+    { q: "Beim Tangentenproblem 2: Was wird vorgegeben?", opts: ["Ein Punkt auf der Kurve", "Die Steigung der Tangente", "Der y-Achsenabschnitt", "Der Krümmungsradius"], ans: 1, exp: "Beim Tangentenproblem 2 ist die Steigung m gegeben; man sucht den Berührpunkt durch Lösung von f'(x) = m." }
+  ],
+  q5: [
+    { q: "Welche Bedingung gilt für ein lokales Maximum?", opts: ["f'(x₀)=0 und f''(x₀)>0", "f'(x₀)=0 und f''(x₀)<0", "f''(x₀)=0 und f'(x₀)≠0", "f(x₀)=0"], ans: 1, exp: "Notwendig: f'(x₀)=0. Hinreichend für Maximum: f''(x₀)<0 (Rechtskrümmung)." },
+    { q: "Ein Wendepunkt liegt vor, wenn...", opts: ["f'(x₀) = 0", "f''(x₀) = 0 und f'''(x₀) ≠ 0", "f(x₀) = 0", "f'(x₀) < 0"], ans: 1, exp: "Am Wendepunkt wechselt die Krümmung. Bedingung: f''=0 und f'''≠0 (oder Vorzeichenwechsel von f'')." },
+    { q: "Wo ist f(x) = x³ − 3x monoton fallend?", opts: ["x < −1 und x > 1", "−1 < x < 1", "x > 0", "Nirgendwo"], ans: 1, exp: "f'(x) = 3x²−3 < 0 → x²<1 → −1<x<1." }
+  ],
+  q6: [
+    { q: "Was gilt an einer Stelle, wo f ein Maximum hat?", opts: ["f' hat ein Maximum", "f' hat eine Nullstelle", "f' ist positiv", "f' ist 0 und bleibt 0"], ans: 1, exp: "An einem Extremum von f ist f'(x₀)=0 (Nullstelle von f')." },
+    { q: "Ist f(x) = x⁴ gerade oder ungerade?", opts: ["Ungerade (Punktsymmetrie)", "Gerade (Achsensymmetrie zur y-Achse)", "Beides", "Weder noch"], ans: 1, exp: "f(−x) = (−x)⁴ = x⁴ = f(x) → gerade Funktion (achsensymmetrisch zur y-Achse)." }
+  ],
+  q7: [
+    { q: "Was versteht man unter der Zielfunktion?", opts: ["Die Nebenbedingung des Problems", "Die Funktion, deren Extremwert gesucht wird", "Die Ableitung der Hauptbedingung", "Die Funktion mit dem größten Definitionsbereich"], ans: 1, exp: "Die Zielfunktion beschreibt die Größe, die maximiert oder minimiert werden soll (z.B. Fläche, Volumen, Kosten)." },
+    { q: "Wozu dient die Nebenbedingung?", opts: ["Um die Zielfunktion abzuleiten", "Um eine Variable durch eine andere auszudrücken (eliminieren)", "Um den Definitionsbereich zu erweitern", "Um das Vorzeichen der Ableitung zu bestimmen"], ans: 1, exp: "Die Nebenbedingung verknüpft die Variablen (z.B. Umfang = konstant) und ermöglicht es, auf eine Variable zu reduzieren." }
+  ],
+  q8: [
+    { q: "Was ist die Ableitung von f(x) = eˣ?", opts: ["x · eˣ⁻¹", "eˣ", "e", "x · e"], ans: 1, exp: "Die Exponentialfunktion eˣ ist ihre eigene Ableitung: (eˣ)' = eˣ." },
+    { q: "Was ist die Ableitung von f(x) = sin(x)?", opts: ["−sin(x)", "cos(x)", "−cos(x)", "tan(x)"], ans: 1, exp: "(sin x)' = cos x. Merkhilfe: sin → cos → −sin → −cos → sin (Zyklus der Länge 4)." },
+    { q: "Was ist die Ableitung von f(x) = cos(3x)?", opts: ["−sin(3x)", "3·sin(3x)", "−3·sin(3x)", "cos(3x)"], ans: 2, exp: "Kettenregel: (cos(3x))' = −sin(3x) · 3 = −3·sin(3x)." },
+    { q: "Welche Funktion ist ihre eigene Ableitung?", opts: ["sin(x)", "x²", "eˣ", "ln(x)"], ans: 2, exp: "Nur eˣ ist ihre eigene Ableitung. Diese Eigenschaft macht sie in der Mathematik einzigartig." }
+  ]
+};
+
+const quizState = {};
+
+function initQuiz(containerId, data, secId) {
+  const container = document.getElementById(containerId);
+  if (!container || container.dataset.init) return;
+  container.dataset.init = '1';
+  quizState[containerId] = { current: 0, data, secId, correct: 0 };
+  renderQuestion(containerId);
+}
+
+function renderQuestion(cid) {
+  const state = quizState[cid];
+  if (!state) return;
+  const { current, data } = state;
+  if (current >= data.length) {
+    const pct = Math.round(state.correct / data.length * 100);
+    document.getElementById(cid).innerHTML = `
+      <div style="text-align:center;padding:1.5rem">
+        <div style="font-family:'Playfair Display',serif;font-size:2rem;color:var(--accent)">${pct}%</div>
+        <div style="color:var(--text);margin:0.5rem 0">${state.correct} von ${data.length} richtig</div>
+        <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:1rem">${pct >= 70 ? '✓ Sehr gut!' : 'Noch einmal üben!'}</div>
+        <button class="check-btn" onclick="resetQuiz('${cid}')">Nochmal</button>
+      </div>`;
+    if (pct >= 70) markDone(state.secId);
+    return;
+  }
+  const q = data[current];
+  const opts = q.opts.map((o, i) =>
+    `<button class="quiz-opt" onclick="answerQuiz('${cid}', ${i})">${o}</button>`
+  ).join('');
+  document.getElementById(cid).innerHTML = `
+    <div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:0.5rem">Frage ${current+1} / ${data.length}</div>
+    <div class="quiz-question">${q.q}</div>
+    <div class="quiz-options">${opts}</div>
+    <div class="quiz-feedback" id="${cid}_fb"></div>
+    <button class="btn-next" id="${cid}_next" onclick="nextQuestion('${cid}')">Weiter →</button>
+  `;
+}
+
+function answerQuiz(cid, idx) {
+  const state = quizState[cid];
+  const q = state.data[state.current];
+  const opts = document.querySelectorAll(`#${cid} .quiz-opt`);
+  opts.forEach(o => o.style.pointerEvents = 'none');
+  opts[idx].classList.add(idx === q.ans ? 'correct' : 'wrong');
+  if (idx !== q.ans) opts[q.ans].classList.add('correct');
+  if (idx === q.ans) state.correct++;
+  const fb = document.getElementById(`${cid}_fb`);
+  fb.textContent = (idx === q.ans ? '✓ Richtig! ' : '✗ Falsch. ') + q.exp;
+  fb.className = 'quiz-feedback show ' + (idx === q.ans ? 'ok' : 'err');
+  document.getElementById(`${cid}_next`).classList.add('show');
+}
+
+function nextQuestion(cid) {
+  quizState[cid].current++;
+  renderQuestion(cid);
+}
+
+function resetQuiz(cid) {
+  const state = quizState[cid];
+  state.current = 0; state.correct = 0;
+  document.getElementById(cid).dataset.init = '';
+  delete quizState[cid];
+  initQuiz(cid, state.data, state.secId);
+}
+
+// ===================== DERIVATIVE QUIZ =====================
+const derivTasks = [
+  { f: "f(x) = x⁵", ans: "5x⁴", check: ["5x^4","5x⁴","5·x⁴"] },
+  { f: "f(x) = 3x²", ans: "6x", check: ["6x"] },
+  { f: "f(x) = x³ + 2x − 4", ans: "3x² + 2", check: ["3x²+2","3x^2+2","3x² + 2"] },
+  { f: "f(x) = x⁻²", ans: "−2x⁻³", check: ["-2x^-3","−2x⁻³","-2x⁻³"] },
+  { f: "f(x) = 4", ans: "0", check: ["0"] },
+];
+let derivIdx = 0;
+
+function initDerivQuiz() {
+  const el = document.getElementById('derivQuiz');
+  if (!el || el.dataset.init) return;
+  el.dataset.init = '1';
+  renderDerivTask();
+}
+
+function renderDerivTask() {
+  const t = derivTasks[derivIdx % derivTasks.length];
+  document.getElementById('derivQuiz').innerHTML = `
+    <div style="font-size:0.75rem;color:var(--text-muted)">Aufgabe ${(derivIdx%derivTasks.length)+1}/${derivTasks.length}</div>
+    <div class="formula" style="margin:0.6rem 0">${t.f}</div>
+    <div style="font-size:0.82rem;margin-bottom:0.4rem">Berechne f'(x):</div>
+    <input type="text" class="text-input" id="dq_input" placeholder="Antwort eingeben..." onkeydown="if(event.key==='Enter')checkDeriv()">
+    <div style="margin-top:0.6rem;display:flex;gap:0.6rem">
+      <button class="check-btn" onclick="checkDeriv()">Prüfen</button>
+      <button class="check-btn" onclick="derivIdx++;renderDerivTask()" style="border-color:var(--text-muted);color:var(--text-muted)">Weiter →</button>
+    </div>
+    <div id="dq_fb" class="quiz-feedback"></div>
+  `;
+  document.getElementById('dq_input').focus();
+}
+
+function checkDeriv() {
+  const t = derivTasks[derivIdx % derivTasks.length];
+  const val = document.getElementById('dq_input').value.trim().replace(/\s/g,'');
+  const ok = t.check.some(c => c.replace(/\s/g,'').toLowerCase() === val.toLowerCase());
+  const fb = document.getElementById('dq_fb');
+  fb.textContent = ok ? `✓ Richtig! f'(x) = ${t.ans}` : `✗ Falsch. Richtige Antwort: f'(x) = ${t.ans}`;
+  fb.className = 'quiz-feedback show ' + (ok ? 'ok' : 'err');
+}
+
+// ===================== INIT =====================
+window.addEventListener('load', () => {
+  updateProgress();
+});
+window.addEventListener('resize', () => {
+  const active = document.querySelector('.section.active');
+  if (!active) return;
+  const id = active.id;
+  if (id === 's1') drawC1();
+  if (id === 's2') drawC2();
+  if (id === 's3') drawC3();
+  if (id === 's4') drawC4();
+  if (id === 's5') drawC5();
+  if (id === 's6') drawC6();
+  if (id === 's7') drawC7();
+  if (id === 's8') { drawC8(); drawC8b(); }
+});
+</script>
+</body>
+</html>
